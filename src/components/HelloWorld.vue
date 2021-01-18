@@ -1,58 +1,100 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+  <v-container>
+    <h1>Prayer Items</h1>
+    <v-banner/>
+    <v-card  style="padding: 25px; margin: 15px auto;">
+      <v-text-field label="Title" v-model="title">
+      </v-text-field>
+      <v-textarea label="Prayer" v-model="prayer">
+      </v-textarea>
+    <v-btn depressed block @click="addItem">Add Item</v-btn>
+    </v-card>
+    <h2>Unaswered</h2>
+    <v-banner />
+    <div class="d-flex flex-wrap  flex-row justify-space-between">
+      <template v-for="(prayer, i) in prayers">
+        <v-card :key="i" min-width="320" class="mt-3">
+          <v-card-title>
+            {{ prayer.title }}
+          </v-card-title>
+          <v-card-subtitle>
+            {{ prayer.date }}
+          </v-card-subtitle>
+          <v-card-text>
+            {{ prayer.prayer}}
+          </v-card-text>
+          <v-card-actions>
+            <v-btn text color="red" @click="removeUnanswered(i)">Delete</v-btn>
+            <v-btn text @click="setAsAnswered(i)">Mark as Answered</v-btn>
+          </v-card-actions>
+        </v-card>
+      </template>
+    </div>
+    <div>
+      <h2>Answered</h2>
+      <v-banner />
+    <div class="d-flex flex-wrap  flex-row justify-space-between">
+      <template v-for="(prayer, i) in answered">
+        <v-card :key="i" min-width="320" class="mt-3">
+          <v-card-title>
+            {{ prayer.title }}
+          </v-card-title>
+          <v-card-subtitle>
+            {{ prayer.date }}
+          </v-card-subtitle>
+          <v-card-text>
+            {{ prayer.prayer}}
+          </v-card-text>
+          <v-card-actions>
+            <v-btn text color="red" @click="removeAnswered(i)">Delete</v-btn>
+          </v-card-actions>
+        </v-card>
+      </template>
+    </div>
+    </div>
+  </v-container>
 </template>
 
 <script>
-export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
+  export default {
+    name: 'HelloWorld',
+    created() {
+      this.deserialize()
+    }, 
+    data: () => ({
+      prayers: [],
+      answered: [],
+      prayer: '',
+      title: ''
+    }),
+    methods: {
+      addItem() {
+        let {prayer, title} = this;
+        this.prayers.unshift({prayer, title, date: new Date()})
+        this.prayer = '';
+        this.title = '';
+        this.serialize();
+      }, 
+      removeAnswered(i) {
+        this.answered.splice(i, 1);
+        this.serialize()
+      }, 
+      removeUnanswered(i) {
+        this.prayers.splice(i, 1);
+        this.serialize();
+      }, 
+      setAsAnswered(i) {
+        this.answered.push({...this.prayers.splice(i, 1)[0], answered: new Date()});
+        this.serialize();
+      },
+      serialize() {
+        localStorage.prayers = JSON.stringify(this.prayers);
+        localStorage.answered = JSON.stringify(this.answered);
+      },
+      deserialize() {
+        this.prayers = JSON.parse(localStorage.prayers)
+        this.answered = JSON.parse(localStorage.answered);
+      }
+    }
   }
-}
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
